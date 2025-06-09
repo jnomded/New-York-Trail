@@ -265,6 +265,35 @@ class Game:
         invest_choice = IntPrompt.ask("Choose investment type", choices=choices)
         invest_type, risk_change = invest_types[invest_choice - 1]
 
+         # --- New logic for "Purchase shares" ---
+        if invest_type.startswith("Purchase shares"):
+            # Example market prices (replace with your actual market data)
+            market_prices = {'stocks': 100.0, 'bonds': 95.0}
+            investment_options = list(market_prices.keys())
+            console.print("Which investment would you like to purchase?")
+            for idx, inv in enumerate(investment_options):
+                console.print(f"{idx+1}. {inv} (Current price: ${market_prices[inv]:.2f})")
+            choice = IntPrompt.ask("Enter the number of your choice", choices=[str(i+1) for i in range(len(investment_options))])
+            investment_type = investment_options[choice - 1]
+
+            max_shares = int(self.character.savings // market_prices[investment_type])
+            if max_shares == 0:
+                console.print("[yellow]You don't have enough savings to buy any shares.[/yellow]")
+                return
+
+            num_shares = IntPrompt.ask(
+                f"How many shares of {investment_type} would you like to buy? (1-{max_shares})",
+                choices=[str(i) for i in range(1, max_shares+1)]
+            )
+            price = market_prices[investment_type]
+
+            success = self.character.buy_shares(investment_type, num_shares, price)
+            if success:
+                console.print(f"Successfully purchased {num_shares} shares of {investment_type} at ${price:.2f} each.")
+            else:
+                console.print("[red]Purchase failed. Not enough savings.[/red]")
+            return  # End after purchase
+
         if risk_change == "casino":
             # Casino logic
             if self.character.savings <= 0:

@@ -28,6 +28,7 @@ class Character:
         self.investments = 0
         self.credit_score = 700  # Starting credit score (average)
         self.monthly_expenses = income / 24  # Assume monthly expenses are 1/2 of monthly income
+        self.investments_dict = {}  # Track shares for each investment type
         
         # Life attributes
         self.stress = 50  # Scale 0-100
@@ -91,6 +92,19 @@ class Character:
         self.savings -= amount
         self.investments += amount
         return amount
+    
+    def buy_shares(self, investment_type, num_shares, market_price):
+        """
+        Buy shares of a given investment type at the current market price.
+        """
+        total_cost = num_shares * market_price
+        if self.savings >= total_cost:
+            self.savings -= total_cost
+            self.investments_dict[investment_type] = self.investments_dict.get(investment_type, 0) + num_shares
+            self.investments += total_cost  # Update total investments value
+            return True
+        else:
+            return False
 
 
 class Hudson(Character):
