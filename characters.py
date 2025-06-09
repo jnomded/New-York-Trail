@@ -103,6 +103,18 @@ class Character:
             return True
         else:
             return False
+    
+    def sell_shares(self, investment_type, num_shares, market_price):
+        """
+        Sell shares of a given investment type at the current market price.
+        """
+        owned = self.investments_dict.get(investment_type, 0)
+        to_sell = min(num_shares, owned)
+        proceeds = to_sell * market_price
+        self.investments_dict[investment_type] = owned - to_sell
+        self.savings += proceeds
+        self.investments -= proceeds  # Adjust total investments value
+        return to_sell, proceeds
 
 class Hudson(Character):
     """Hudson character with pre-defined starting attributes."""

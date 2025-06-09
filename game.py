@@ -308,6 +308,7 @@ class Game:
         """Invest money in the market with risk options and secret casino."""
         while True:
             invest_types = [
+                ("Sell shares (convert shares to cash)", 0),
                 ("Purchase shares (lower risk, -1 risk rating)", -1),
                 ("Day trading (higher risk, +2 risk rating)", 2),
                 ("Option day trading (very high risk, +4 risk rating)", 4),
@@ -358,6 +359,41 @@ class Game:
                 else:
                     console.print("[red]Purchase failed. Not enough savings.[/red]")
                 return  # End after purchase
+            # --- End of new logic for "Purchase shares" ---
+
+            # ...inside action_invest...
+            if invest_type.startswith("Sell shares"):
+                market_prices = {'stocks': 100.0, 'bonds': 95.0}
+                holdings = self.character.investments_dict
+                owned_types = [k for k, v in holdings.items() if v > 0]
+                if not owned_types:
+                    console.print("[yellow]You don't own any shares to sell.[/yellow]")
+                    return
+
+                console.print("Your current holdings:")
+                for idx, inv in enumerate(owned_types):
+                    num = holdings[inv]
+                    price = market_prices.get(inv, 0)
+                    console.print(f"{idx+1}. {inv}: {num} shares (Current price: ${price:.2f})")
+
+                choice = IntPrompt.ask("Enter the number of the investment to sell", choices=[str(i+1) for i in range(len(owned_types))])
+                investment_type = owned_types[choice - 1]
+                max_shares = holdings[investment_type]
+                price = market_prices[investment_type]
+
+                num_shares = IntPrompt.ask(
+                    f"How many shares of {investment_type} would you like to sell? (1-{max_shares})",
+                    choices=[str(i) for i in range(1, max_shares+1)]
+                )
+
+                sold, proceeds = self.character.sell_shares(investment_type, num_shares, price)
+                if sold > 0:
+                    console.print(f"Sold {sold} shares of {investment_type} at ${price:.2f} each for ${proceeds:.2f}.")
+                else:
+                    console.print("[red]Sale failed. You don't own enough shares.[/red]")
+                return
+            
+            # Handle risk change options
 
             if risk_change == "back":
                 # Return to main action menu
