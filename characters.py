@@ -2,6 +2,8 @@
 Character classes for Credit Trail game.
 """
 
+import random
+
 class Character:
     """Base character class with financial and life attributes."""
     
@@ -32,9 +34,15 @@ class Character:
         self.health = 80  # Scale 0-100
         self.reputation = 70  # Scale 0-100
         
+    # def get_monthly_income(self):
+    #     """Calculate monthly income from annual income."""
+    #     return self.income / 12
+
     def get_monthly_income(self):
-        """Calculate monthly income from annual income."""
-        return self.income / 12
+        """Calculate monthly income from annual income, adjusted by market conditions."""
+        market_factor = random.uniform(-0.2, 0.2)  # Simulate market: -20% to +20%
+        base_income = self.income / 12
+        return base_income * (1 + market_factor)
     
     def get_net_worth(self):
         """Calculate net worth (savings + investments - debt)."""
