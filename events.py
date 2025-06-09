@@ -325,6 +325,22 @@ def get_random_event(current_date, character):
         )
     ]
     
+    # Add the Promotion event
+    promotion_event = FinancialEvent(
+        "Promotion",
+        "You received a promotion at work!",
+        "Your monthly income has increased by 10%.",
+        income_change=0.10  # 10% increase in income
+    )
+    
+    # Adjust probability of promotion based on reputation
+    if character.reputation > 75:
+        # High reputation increases the chance of a promotion
+        financial_events.extend([promotion_event] * 3)  # Add promotion event multiple times
+    elif character.reputation > 50:
+        # Moderate reputation gives a smaller chance
+        financial_events.append(promotion_event)
+    
     life_events = [
         LifeEvent(
             "Vacation", 
