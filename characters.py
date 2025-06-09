@@ -26,12 +26,13 @@ class Character:
         self.investments = 0
         self.credit_score = 700  # Starting credit score (average)
         self.monthly_expenses = income / 24  # Assume monthly expenses are 1/2 of monthly income
-        
+        self.investments_dict = {}  # Track shares for each investment type
+
         # Life attributes
         self.stress = 50  # Scale 0-100
         self.health = 80  # Scale 0-100
         self.reputation = 70  # Scale 0-100
-        
+
     #def get_monthly_income(self):
     #    """Calculate monthly income from annual income."""
     #    return self.income / 12
@@ -45,7 +46,7 @@ class Character:
     def get_net_worth(self):
         """Calculate net worth (savings + investments - debt)."""
         return self.savings + self.investments - self.debt
-    
+
     def work(self):
         """Perform work action to earn income and increase stress."""
         earned = self.get_monthly_income()
@@ -55,7 +56,7 @@ class Character:
             self.stress = 100
             self.health -= 25
         return earned
-    
+
     def relax(self):
         """Perform relax action to reduce stress and improve health."""
         stress_reduction = min(25, self.stress)
@@ -64,36 +65,48 @@ class Character:
         if self.health > 100:
             self.health = 100
         return stress_reduction
-    
+
     def pay_debt(self, amount):
         """Pay off some debt."""
         payment = min(amount, self.debt)
         if payment > self.savings:
             payment = self.savings
-        
+
         self.savings -= payment
         self.debt -= payment
-        
+
         # Improve credit score when paying debt
         self.credit_score += payment / 1000
         if self.credit_score > 850:
             self.credit_score = 850
-            
+
         return payment
-    
+
     def invest(self, amount):
         """Invest money from savings."""
         if amount > self.savings:
             amount = self.savings
-        
+
         self.savings -= amount
         self.investments += amount
         return amount
 
+    def buy_shares(self, investment_type, num_shares, market_price):
+        """
+        Buy shares of a given investment type at the current market price.
+        """
+        total_cost = num_shares * market_price
+        if self.savings >= total_cost:
+            self.savings -= total_cost
+            self.investments_dict[investment_type] = self.investments_dict.get(investment_type, 0) + num_shares
+            self.investments += total_cost  # Update total investments value
+            return True
+        else:
+            return False
 
 class Hudson(Character):
     """Hudson character with pre-defined starting attributes."""
-    
+
     def __init__(self):
         """Initialize Hudson with his specific attributes."""
         super().__init__(
@@ -110,7 +123,7 @@ class Hudson(Character):
 
 class Jane(Character):
     """Jane character with pre-defined starting attributes."""
-    
+
     def __init__(self):
         """Initialize Jane with her specific attributes."""
         super().__init__(
