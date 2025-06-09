@@ -124,13 +124,11 @@ class Game:
         if self.character.savings >= self.monthly_expenses:
             self.character.savings -= self.monthly_expenses
         else:
-            # Not enough savings, go into debt
+            # Track shortfall but don't immediately add to debt
             shortfall = self.monthly_expenses - self.character.savings
             self.character.savings = 0
-            self.character.debt += shortfall
-            self.character.credit_score -= 10  # Credit score penalty
-            
-            console.print(f"[bold red]Warning:[/bold red] You didn't have enough savings to cover expenses. ${shortfall:.2f} added to debt.")
+            self.character.pending_debt = shortfall  # Track pending debt
+            console.print(f"[bold red]Warning:[/bold red] You didn't have enough savings to cover expenses. ${shortfall:.2f} will be added to debt at the end of the turn.")
     
     def process_event(self, event):
         """Process a random event."""
@@ -348,6 +346,12 @@ class Game:
     
     def advance_turn(self):
         """Advance to the next turn."""
+        # Add pending debt to total debt
+        if hasattr(self.character, "pending_debt") and self.character.pending_debt > 0:
+            self.character.debt += self.character.pending_debt
+            console.print(f"[bold red]Pending debt of ${self.character.pending_debt:.2f} added to total debt.[/bold red]")
+            self.character.pending_debt = 0  # Reset pending debt
+
         # Update investments
         if self.character.investments > 0:
             new_amount, return_percent = calculate_investment_return(
