@@ -41,7 +41,7 @@ class Character:
         base_income = self.income / 12
         return base_income * (1 + market_factor)
 
-    
+
     def get_net_worth(self):
         """Calculate net worth (savings + investments - debt)."""
         return self.savings + self.investments - self.debt

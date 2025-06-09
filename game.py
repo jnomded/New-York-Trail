@@ -179,7 +179,7 @@ class Game:
     def process_player_actions(self, allow_multiple_actions=False):
         """
         Process player actions for the turn.
-        allow_multiple_actions: if True, allow multiple main actions this turn.
+        allow_multiple_actions: if True, allow up to 2 main actions this turn.
         """
         main_actions = [
             "Work (earn income)",
@@ -193,12 +193,13 @@ class Game:
             "End turn"
         ]
         main_actions_taken = set()
+        main_actions_limit = 2 if allow_multiple_actions else 1
         while True:
             console.print("\n[bold]Available Actions:[/bold]")
             idx = 1
             action_map = {}
             for i, action in enumerate(main_actions, 1):
-                if allow_multiple_actions or action not in main_actions_taken:
+                if action not in main_actions_taken:
                     console.print(f"{idx}. {action}")
                     action_map[str(idx)] = ("main", i-1)
                     idx += 1
@@ -206,6 +207,11 @@ class Game:
                 console.print(f"{idx}. {action}")
                 action_map[str(idx)] = ("non", j-1)
                 idx += 1
+
+            # If player has taken the max allowed main actions, force end of turn
+            if len(main_actions_taken) >= main_actions_limit:
+                console.print("[green]You've taken the maximum main actions allowed this turn.[/green]")
+                break
 
             choice = Prompt.ask("Choose an action (1 - 3) to end turn.", choices=list(action_map.keys()))
             action_type, action_idx = action_map[choice]
@@ -218,11 +224,9 @@ class Game:
                 elif action_idx == 2:
                     self.action_volunteer()
                 main_actions_taken.add(main_actions[action_idx])
-                if not allow_multiple_actions:
-                    break
-                # If all main actions taken, force end
-                if len(main_actions_taken) == len(main_actions):
-                    console.print("[green]You've taken all main actions available this turn.[/green]")
+                # If reached main actions limit, end turn
+                if len(main_actions_taken) >= main_actions_limit:
+                    console.print("[green]You've taken the maximum main actions allowed this turn.[/green]")
                     break
             else:
                 if action_idx == 0:
