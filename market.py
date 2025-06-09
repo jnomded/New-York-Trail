@@ -42,9 +42,9 @@ def display_sp500(current_turn_date):
     plt.imshow(img)
     plt.axis('off')
     plt.title(f"S&P 500 Last 52 Weeks up to {end_date.strftime('%Y-%m-%d')}")
-    console.print("[green]Displaying market chart (closes automatically after 25 seconds)...[/green]")
+    console.print("[green]Displaying market chart...[/green]")
     plt.show(block=False)
-    plt.pause(25)
+    plt.pause(8)
     plt.close()
 
 def generate_mock_sp500_data(start_date, end_date, current_date):

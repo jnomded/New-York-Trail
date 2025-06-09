@@ -162,8 +162,7 @@ class Game:
                     console.print(f"  {line}")
         
         console.print()  # Empty line for spacing
-        time.sleep(2)  # Pause to read the event
-    
+
     def process_player_actions(self):
         """Process player actions for the turn."""
         actions = [
@@ -249,7 +248,8 @@ class Game:
         invest_types = [
             ("Purchase shares (lower risk, -1 risk rating)", -1),
             ("Day trading (higher risk, +2 risk rating)", 2),
-            ("Option day trading (very high risk, +4 risk rating)", 4)
+            ("Option day trading (very high risk, +4 risk rating)", 4),
+            ("Short the market (+3 risk rating)", 3)
         ]
         show_casino = self.character.risk_rating > 7 and self.character.debt > 10000
         if show_casino:
