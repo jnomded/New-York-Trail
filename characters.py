@@ -47,7 +47,7 @@ class Character:
         self.stress += 10
         if self.stress > 100:
             self.stress = 100
-            self.health -= 5
+            self.health -= 25
         return earned
     
     def relax(self):

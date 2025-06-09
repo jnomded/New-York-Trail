@@ -73,18 +73,33 @@ class Game:
     def play_turn(self):
         """Play a single turn of the game."""
         self.display_status()
-        
-        # Process monthly expenses
         self.process_expenses()
-        
-        # Check for random events
-        event = get_random_event(self.current_date, self.character)
-        if event:
-            self.process_event(event)
-        
+
+        # Volunteer bonus: increases chance of positive event
+        volunteer_bonus = getattr(self.character, "volunteer_bonus", 0)
+
+        # Calculate random event chance (20% base, up to 60% if high stress/low health)
+        stress_factor = max(0, (self.character.stress - 40) / 60)  # 0 to 1
+        health_factor = max(0, (80 - self.character.health) / 80)  # 0 to 1
+        base_chance = 0.2 + 0.4 * max(stress_factor, health_factor)
+        base_chance += volunteer_bonus  # Volunteer increases chance of positive event
+        if base_chance > 0.6:
+            base_chance = 0.6
+
+        # Random event: multiple actions allowed
+        allow_multiple_actions = False
+        if random.random() < base_chance:
+            allow_multiple_actions = True
+            console.print(Panel(
+                "[bold yellow]You feel a surge of energy and opportunity this month![/bold yellow]\n"
+                "You may take multiple main actions this turn.",
+                title="Special Opportunity!",
+                border_style="yellow"
+            ))
+
         # Player actions
-        self.process_player_actions()
-    
+        self.process_player_actions(allow_multiple_actions)
+
     def display_status(self):
         """Display the current game status."""
         console.print(f"\n[bold cyan]== TURN {self.turn}/{self.max_turns} - {self.current_date.strftime('%B %Y')} ==[/bold cyan]")
@@ -161,36 +176,81 @@ class Game:
         
         console.print()  # Empty line for spacing
 
-    def process_player_actions(self):
-        """Process player actions for the turn."""
-        actions = [
+    def process_player_actions(self, allow_multiple_actions=False):
+        """
+        Process player actions for the turn.
+        allow_multiple_actions: if True, allow multiple main actions this turn.
+        """
+        main_actions = [
             "Work (earn income)",
+            "Relax (reduce stress)",
+            "Volunteer (help others, reduce expenses/risk)"
+        ]
+        non_actions = [
             "Pay debt",
             "Invest in market",
-            "Relax (reduce stress)",
-            "Check market trends"
+            "Check market trends",
+            "End turn"
         ]
-        
+        main_actions_taken = set()
         while True:
             console.print("\n[bold]Available Actions:[/bold]")
-            for i, action in enumerate(actions, 1):
-                console.print(f"{i}. {action}")
-            
-            choice = IntPrompt.ask("Choose an action (1-5)", choices=[str(i) for i in range(1, 6)])
-            
-            if choice == 1:
-                self.action_work()
-            elif choice == 2:
-                self.action_pay_debt()
-            elif choice == 3:
-                self.action_invest()
-            elif choice == 4:
-                self.action_relax()
-            elif choice == 5:
-                self.action_check_market()
-                continue  # Don't end turn after checking market
-            
-            break  # End turn after taking an action
+            idx = 1
+            action_map = {}
+            for i, action in enumerate(main_actions, 1):
+                if allow_multiple_actions or action not in main_actions_taken:
+                    console.print(f"{idx}. {action}")
+                    action_map[str(idx)] = ("main", i-1)
+                    idx += 1
+            for j, action in enumerate(non_actions, 1):
+                console.print(f"{idx}. {action}")
+                action_map[str(idx)] = ("non", j-1)
+                idx += 1
+
+            choice = Prompt.ask("Choose an action (1 - 3) to end turn.", choices=list(action_map.keys()))
+            action_type, action_idx = action_map[choice]
+
+            if action_type == "main":
+                if action_idx == 0:
+                    self.action_work()
+                elif action_idx == 1:
+                    self.action_relax()
+                elif action_idx == 2:
+                    self.action_volunteer()
+                main_actions_taken.add(main_actions[action_idx])
+                if not allow_multiple_actions:
+                    break
+                # If all main actions taken, force end
+                if len(main_actions_taken) == len(main_actions):
+                    console.print("[green]You've taken all main actions available this turn.[/green]")
+                    break
+            else:
+                if action_idx == 0:
+                    self.action_pay_debt()
+                elif action_idx == 1:
+                    self.action_invest()
+                elif action_idx == 2:
+                    self.action_check_market()
+                elif action_idx == 3:
+                    break  # End turn
+
+    def action_volunteer(self):
+        """Volunteer: reduce expenses, risk, and increase chance of positive event."""
+        expense_reduction = self.monthly_expenses * 0.1
+        self.monthly_expenses -= expense_reduction
+        if self.monthly_expenses < 0:
+            self.monthly_expenses = 0
+        self.character.risk_rating -= 0.5
+        if self.character.risk_rating < 1:
+            self.character.risk_rating = 1
+        # Set a bonus for next turn's event chance
+        self.character.volunteer_bonus = 0.1
+        console.print(
+            f"[cyan]You volunteered this month![/cyan]\n"
+            f"Monthly expenses reduced by ${expense_reduction:.2f}.\n"
+            f"Risk rating decreased to {self.character.risk_rating:.1f}/10.\n"
+            f"You're more likely to encounter a positive event next month."
+        )
 
     def action_work(self):
         """Work action to earn income."""
