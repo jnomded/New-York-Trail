@@ -27,8 +27,12 @@ pip install -r requirements.txt
 ## Running the Game
 
 1. First, collect the market data (only needed once):
+2. Take the files in data_collection out of their directory before running them.
+3. Run collect_data.py to gather historical market data:
+4. Run generate plots to create visualizations of the S&P 500 data:
 ```bash
 python collect_data.py
+python generate_plots.py
 ```
 
 2. Start the game:
@@ -69,7 +73,3 @@ python main.py
 ## License
 
 This project is for educational purposes only.
-
-## Data Reminder
-
-Take the files in data_collection out of their directory before running them.
