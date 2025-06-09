@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 1. If plots aren't available in "data", collect the market history (only needed once):
 2. Take the files in data_collection out of their directory before running them.
-3. Run collect_data.py to gather historical market data:
+3. Run collect_market.py to gather historical market data:
 4. Run generate plots to create visualizations of the S&P 500 data:
 ```bash
 python collect_market.py
