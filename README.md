@@ -72,7 +72,9 @@ python main.py
 
 ## Fail Conditions
 
--....
+- You reach June 2009 with a negative net worth
+- You go bankrupt, which happens if your debt exceeds $50,000 while your credit score is below 500.
+- Your health drops to 0 or below.
 
 ## License
 
