@@ -1,14 +1,14 @@
-# Credit Trail
+# New York Trail
 
-A terminal-based financial simulator game set during the 2008 financial crisis.
+A terminal-based financial simulator game set during the lead-up to the 2008 financial crisis.
 
 ## Overview
 
-Credit Trail is an interactive, turn-based financial simulator where you navigate the economic landscape from June 2005 to June 2009. Make critical financial decisions, manage your investments, and try to survive one of the most turbulent economic periods in modern history.
+New York Trail is an interactive, turn-based financial simulator where you navigate the economic landscape from June 2005 to June 2009. Your goal is to make critical financial decisions, manage your investments, and try to survive one of the most turbulent economic periods in modern history.
 
 ## Features
 
-- Choose between two characters with different financial starting points
+- Choose between characters with different financial starting points
 - Make monthly decisions about work, investments, debt management, and personal well-being
 - Experience real historical market events like the Lehman Brothers collapse
 - View real S&P 500 market data visualizations for any point in the timeline
@@ -69,6 +69,10 @@ python main.py
 ## Win Conditions
 
 - Survive until June 2009 with a positive net worth
+
+## Fail Conditions
+
+-....
 
 ## License
 
