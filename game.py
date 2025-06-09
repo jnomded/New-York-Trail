@@ -306,77 +306,84 @@ class Game:
     
     def action_invest(self):
         """Invest money in the market with risk options and secret casino."""
-        # Always show investment options, even if savings <= 0
-        invest_types = [
-            ("Purchase shares (lower risk, -1 risk rating)", -1),
-            ("Day trading (higher risk, +2 risk rating)", 2),
-            ("Option day trading (very high risk, +4 risk rating)", 4),
-            ("Short the market (+3 risk rating)", 3)
-        ]
-        show_casino = self.character.risk_rating > 7 and self.character.debt > 10000
-        if show_casino:
-            invest_types.append(("Secret: Go to the casino (50/50 double or lose all)", "casino"))
+        while True:
+            invest_types = [
+                ("Purchase shares (lower risk, -1 risk rating)", -1),
+                ("Day trading (higher risk, +2 risk rating)", 2),
+                ("Option day trading (very high risk, +4 risk rating)", 4),
+                ("Short the market (+3 risk rating)", 3)
+            ]
+            show_casino = self.character.risk_rating > 7 and self.character.debt > 10000
+            if show_casino:
+                invest_types.append(("Secret: Go to the casino (50/50 double or lose all)", "casino"))
+            invest_types.append(("Go back", "back"))
 
-        console.print(f"You have ${self.character.savings:.2f} available to invest.")
-        console.print(f"Your risk rating is {self.character.risk_rating}/10 (higher = more volatile returns)")
+            console.print(f"You have ${self.character.savings:.2f} available to invest.")
+            console.print(f"Your risk rating is {self.character.risk_rating}/10 (higher = more volatile returns)")
 
-        for idx, (desc, _) in enumerate(invest_types, 1):
-            console.print(f"{idx}. {desc}")
+            for idx, (desc, _) in enumerate(invest_types, 1):
+                console.print(f"{idx}. {desc}")
 
-        choices = [str(i) for i in range(1, len(invest_types) + 1)]
-        invest_choice = IntPrompt.ask("Choose investment type", choices=choices)
-        invest_type, risk_change = invest_types[invest_choice - 1]
+            choices = [str(i) for i in range(1, len(invest_types) + 1)]
+            invest_choice = IntPrompt.ask("Choose investment type", choices=choices)
+            invest_type, risk_change = invest_types[invest_choice - 1]
 
-        if risk_change == "casino":
-            # Casino logic
+            if risk_change == "back":
+                # Return to main action menu
+                return
+
+            if risk_change == "casino":
+                # Casino logic
+                if self.character.savings <= 0:
+                    console.print("[yellow]You don't have any savings to bet at the casino.[/yellow]")
+                    continue
+                amount = IntPrompt.ask(
+                    f"How much would you like to bet at the casino? (0-{int(self.character.savings)})",
+                    default=int(self.character.savings)
+                )
+                amount = min(amount, self.character.savings)
+                if amount <= 0:
+                    console.print("No bet made.")
+                    continue
+                self.character.savings -= amount
+                win = random.choice([True, False])
+                if win:
+                    winnings = amount * 2
+                    self.character.savings += winnings
+                    console.print(f"[bold magenta]You WON at the casino! Your bet is now ${winnings:.2f}.[/bold magenta]")
+                else:
+                    console.print(f"[bold red]You lost your bet at the casino. ${amount:.2f} is gone.[/bold red]")
+                # Casino does not affect risk rating
+                return
+
+            # Standard investment
             if self.character.savings <= 0:
-                console.print("[yellow]You don't have any savings to bet at the casino.[/yellow]")
-                return self.action_invest()
+                console.print("[yellow]You don't have any savings to invest.[/yellow]")
+                continue
             amount = IntPrompt.ask(
-                f"How much would you like to bet at the casino? (0-{int(self.character.savings)})",
-                default=int(self.character.savings)
+                f"How much would you like to invest? (0-{int(self.character.savings)})",
+                default=int(self.character.savings / 2)
             )
             amount = min(amount, self.character.savings)
             if amount <= 0:
-                console.print("No bet made.")
-                return self.action_invest()
-            self.character.savings -= amount
-            win = random.choice([True, False])
-            if win:
-                winnings = amount * 2
-                self.character.savings += winnings
-                console.print(f"[bold magenta]You WON at the casino! Your bet is now ${winnings:.2f}.[/bold magenta]")
-            else:
-                console.print(f"[bold red]You lost your bet at the casino. ${amount:.2f} is gone.[/bold red]")
-            # Casino does not affect risk rating
+                console.print("No investment made.")
+                continue
+
+            self.character.invest(amount)
+            # Adjust risk rating, clamp between 1 and 10
+            self.character.risk_rating += risk_change
+            if self.character.risk_rating < 1:
+                self.character.risk_rating = 1
+            if self.character.risk_rating > 10:
+                self.character.risk_rating = 10
+
+            console.print(f"You've invested [green]${amount:.2f}[/green] in the market via [bold]{invest_type.split('(')[0].strip()}[/bold].")
+            if isinstance(risk_change, int):
+                if risk_change < 0:
+                    console.print(f"[cyan]Your risk rating decreased to {self.character.risk_rating}/10.[/cyan]")
+                elif risk_change > 0:
+                    console.print(f"[red]Your risk rating increased to {self.character.risk_rating}/10.[/red]")
             return
-
-        # Standard investment
-        if self.character.savings <= 0:
-            console.print("[yellow]You don't have any savings to invest.[/yellow]")
-            return self.action_invest()
-        amount = IntPrompt.ask(
-            f"How much would you like to invest? (0-{int(self.character.savings)})",
-            default=int(self.character.savings / 2)
-        )
-        amount = min(amount, self.character.savings)
-        if amount <= 0:
-            console.print("No investment made.")
-            return self.action_invest()
-
-        self.character.invest(amount)
-        # Adjust risk rating, clamp between 1 and 10
-        self.character.risk_rating += risk_change
-        if self.character.risk_rating < 1:
-            self.character.risk_rating = 1
-        if self.character.risk_rating > 10:
-            self.character.risk_rating = 10
-
-        console.print(f"You've invested [green]${amount:.2f}[/green] in the market via [bold]{invest_type.split('(')[0].strip()}[/bold].")
-        if risk_change < 0:
-            console.print(f"[cyan]Your risk rating decreased to {self.character.risk_rating}/10.[/cyan]")
-        elif risk_change > 0:
-            console.print(f"[red]Your risk rating increased to {self.character.risk_rating}/10.[/red]")
 
     def action_relax(self):
         """Relax to reduce stress."""
